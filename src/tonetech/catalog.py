@@ -14,8 +14,10 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from pedalboard import (
+    Chorus,
     Clipping,
     Compressor,
+    Delay,
     Distortion,
     Gain,
     HighpassFilter,
@@ -24,7 +26,9 @@ from pedalboard import (
     LowShelfFilter,
     NoiseGate,
     PeakFilter,
+    Phaser,
     Plugin,
+    Reverb,
 )
 
 
@@ -436,6 +440,148 @@ _register(
         plugins=(HighpassFilter, PeakFilter, PeakFilter, LowpassFilter, LowpassFilter),
         settings=_cab,
         tags=("speaker", "fizz", "always last"),
+    )
+)
+
+# --------------------------------------------------------------------------
+# EQ
+# --------------------------------------------------------------------------
+
+
+def _eq(r: dict[str, float]) -> list[dict[str, float]]:
+    return [
+        dict(cutoff_frequency_hz=120.0, gain_db=r["low"], q=0.7),
+        dict(cutoff_frequency_hz=r["mid_freq"], gain_db=r["mid"], q=1.0),
+        dict(cutoff_frequency_hz=3000.0, gain_db=r["high"], q=0.7),
+    ]
+
+
+_register(
+    BlockType(
+        kind="eq",
+        label="EQ",
+        category="eq",
+        description="Three-band EQ with a sweepable mid. Fix boxiness (cut 400-600Hz) or mud (cut around 200Hz).",
+        params=(
+            P("low", "Low", -12, 12, 0, "dB"),
+            P("mid", "Mid", -12, 12, 0, "dB"),
+            P("mid_freq", "Mid freq", 200, 3000, 600, "Hz", "log", 0),
+            P("high", "High", -12, 12, 0, "dB"),
+        ),
+        plugins=(LowShelfFilter, PeakFilter, HighShelfFilter),
+        settings=_eq,
+        tags=("boxy", "mud", "honk", "shape"),
+    )
+)
+
+# --------------------------------------------------------------------------
+# Modulation
+# --------------------------------------------------------------------------
+
+
+def _chorus(r: dict[str, float]) -> list[dict[str, float]]:
+    return [dict(rate_hz=r["rate"], depth=r["depth"], centre_delay_ms=7.0, feedback=0.0, mix=r["mix"])]
+
+
+_register(
+    BlockType(
+        kind="chorus",
+        label="Chorus",
+        category="mod",
+        description="Analog-style chorus. Slow and shallow for width, fast and deep for 80s shimmer.",
+        params=(
+            P("rate", "Rate", 0.1, 5, 0.8, "Hz", "log", 2),
+            P("depth", "Depth", 0, 1, 0.3, ""),
+            P("mix", "Mix", 0, 1, 0.5, ""),
+        ),
+        plugins=(Chorus,),
+        settings=_chorus,
+        tags=("80s", "the cure", "nirvana", "andy summers", "shimmer"),
+    )
+)
+
+
+def _phaser(r: dict[str, float]) -> list[dict[str, float]]:
+    return [dict(rate_hz=r["rate"], depth=r["depth"], centre_frequency_hz=1300.0, feedback=r["feedback"], mix=0.5)]
+
+
+_register(
+    BlockType(
+        kind="phaser",
+        label="Phaser",
+        category="mod",
+        description="Four-stage phaser. Slow sweep for swirl, more feedback for a vocal, resonant peak.",
+        params=(
+            P("rate", "Rate", 0.05, 4, 0.5, "Hz", "log", 2),
+            P("depth", "Depth", 0, 1, 0.6, ""),
+            P("feedback", "Feedback", 0, 0.9, 0.3, ""),
+        ),
+        plugins=(Phaser,),
+        settings=_phaser,
+        tags=("gilmour", "evh", "funk", "swirl"),
+    )
+)
+
+# --------------------------------------------------------------------------
+# Time
+# --------------------------------------------------------------------------
+
+
+def _delay(r: dict[str, float]) -> list[dict[str, float]]:
+    return [
+        dict(delay_seconds=r["time"] / 1000.0, feedback=r["feedback"], mix=r["mix"]),
+        dict(cutoff_frequency_hz=r["tone"]),
+    ]
+
+
+_register(
+    BlockType(
+        kind="delay",
+        label="Delay",
+        category="time",
+        description="Digital delay with a darkening tone control on the output. 80-140ms is slapback, 350-450ms is ambient.",
+        params=(
+            P("time", "Time", 40, 1200, 380, "ms", "log", 0),
+            P("feedback", "Feedback", 0, 0.9, 0.3, ""),
+            P("mix", "Mix", 0, 1, 0.3, ""),
+            P("tone", "Tone", 1500, 12000, 5000, "Hz", "log", 0),
+        ),
+        plugins=(Delay, LowpassFilter),
+        settings=_delay,
+        tags=("slapback", "rockabilly", "the edge", "u2", "ambient", "dotted eighth"),
+    )
+)
+
+
+def _reverb(r: dict[str, float]) -> list[dict[str, float]]:
+    mix = r["mix"]
+    return [
+        dict(
+            room_size=r["size"],
+            damping=r["damping"],
+            wet_level=mix * 0.6,
+            dry_level=1.0 - mix * 0.4,
+            width=r["width"],
+            freeze_mode=0.0,
+        )
+    ]
+
+
+_register(
+    BlockType(
+        kind="reverb",
+        label="Reverb",
+        category="time",
+        description="Plate/hall style reverb. Small size with high damping is a spring-ish room; big and bright is a wash.",
+        params=(
+            P("size", "Size", 0, 1, 0.5, ""),
+            P("damping", "Damping", 0, 1, 0.5, ""),
+            P("mix", "Mix", 0, 1, 0.25, ""),
+            P("width", "Width", 0, 1, 1.0, ""),
+        ),
+        plugins=(Reverb,),
+        settings=_reverb,
+        tags=("plate", "spring", "hall", "ambient", "surf"),
     )
 )
 
