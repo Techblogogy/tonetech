@@ -225,6 +225,8 @@ class AudioEngine(BaseEngine):
                     with self._lock:
                         board = self._chain.board
                     processed = board(chunk, self.sample_rate, reset=False)
+                    if processed.shape[0] == 1:
+                        processed = np.vstack([processed, processed])
                     self._meter(chunk, processed)
                     self._push_capture(processed)
                     out.write(processed.astype(np.float32, copy=False), self.sample_rate)
