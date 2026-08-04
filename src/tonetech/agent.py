@@ -200,6 +200,7 @@ class ToneTech:
                 return json.dumps({"changes": lines or ["(no effective change)"], "rig": self._rig_payload()}), False
             if name == "analyze_input":
                 seconds = float(args.get("seconds", 3) or 3)
+                seconds = max(1.0, min(8.0, seconds))
                 audio = self.engine.capture(seconds)
                 result = analyze(audio, self.engine.sample_rate)
                 return json.dumps({"summary": result.summary(), **result.to_dict()}), False
