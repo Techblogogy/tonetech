@@ -55,6 +55,7 @@ class ParamSpec:
 
     def norm(self, real: float) -> float:
         if self.curve == "log":
+            real = min(self.hi, max(self.lo, real))
             return math.log(real / self.lo) / math.log(self.hi / self.lo)
         return (real - self.lo) / (self.hi - self.lo)
 
