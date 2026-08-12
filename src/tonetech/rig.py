@@ -303,6 +303,7 @@ class RigState:
             and self._undo[-1][1].source == "you"
             and self._undo[-1][1].lines
             and self._undo[-1][1].lines[0].startswith(f"{block.id} {block.label}: {spec.label} ")
+            and not self._redo
         )
         if not coalesce:
             snapshot = copy.deepcopy(self.rig)
