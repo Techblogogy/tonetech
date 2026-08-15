@@ -180,6 +180,7 @@ class AudioEngine(BaseEngine):
         self._ring: collections.deque[np.ndarray] = collections.deque()
         self._ring_samples = 0
         self.dropped = 0
+        self._silent_samples = 0
 
     def describe(self) -> str:
         return f"{self.input_device} -> {self.output_device} @ {int(self.sample_rate)}Hz/{self.buffer_size}"
@@ -238,6 +239,16 @@ class AudioEngine(BaseEngine):
     def _meter(self, inp: np.ndarray, out: np.ndarray) -> None:
         decay = 0.6
         lv = self.levels
+        # Exactly-zero input for several seconds almost always means the OS is
+        # withholding the microphone (permissions) or the wrong device is selected.
+        if float(np.max(np.abs(inp))) == 0.0:
+            self._silent_samples += inp.shape[-1]
+            if self._silent_samples > 4 * self.sample_rate and not self.error:
+                self.error = f"input '{self.input_device}' is silent: check device and microphone permission"
+        else:
+            self._silent_samples = 0
+            if self.error and self.error.startswith("input "):
+                self.error = None
         lv.input_db = max(_rms_db(inp), lv.input_db - 6 * decay, FLOOR_DB)
         lv.output_db = max(_rms_db(out), lv.output_db - 6 * decay, FLOOR_DB)
         lv.input_peak_db = max(_peak_db(inp), lv.input_peak_db - 3 * decay, FLOOR_DB)
