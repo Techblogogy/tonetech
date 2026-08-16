@@ -241,6 +241,11 @@ class ToneTech:
                     fallbacks="default",
                 )
                 self.messages.append({"role": "assistant", "content": response.content})
+                if response.stop_reason == "refusal":
+                    details = getattr(response, "stop_details", None)
+                    why = getattr(details, "explanation", None) or "the request was declined"
+                    turn.error = f"Declined: {why}"
+                    break
                 texts = [b.text for b in response.content if b.type == "text"]
                 if texts:
                     turn.text = "\n".join(texts).strip()
