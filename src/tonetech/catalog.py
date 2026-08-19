@@ -61,6 +61,8 @@ class ParamSpec:
 
     @staticmethod
     def clamp(value: float) -> float:
+        if math.isnan(value):
+            raise PatchError("parameter value is NaN")
         return min(1.0, max(0.0, value))
 
     def format(self, value: float) -> str:
