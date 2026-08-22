@@ -533,7 +533,7 @@ _register(
 def _delay(r: dict[str, float]) -> list[dict[str, float]]:
     return [
         dict(delay_seconds=r["time"] / 1000.0, feedback=r["feedback"], mix=r["mix"]),
-        dict(cutoff_frequency_hz=r["tone"]),
+        dict(cutoff_frequency_hz=r["tone"] if r["mix"] > 0 else 20000.0),
     ]
 
 
