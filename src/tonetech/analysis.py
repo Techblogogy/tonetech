@@ -69,6 +69,8 @@ def analyze(audio: np.ndarray, sample_rate: float) -> Analysis:
         mono = audio
     mono = mono.astype(np.float64, copy=False)
     seconds = len(mono) / float(sample_rate)
+    if len(mono) < 256:
+        return Analysis(seconds, -120, -120, 0, 0, {b[0]: 0.0 for b in BANDS}, False, True, ["silent"])
 
     rms = float(np.sqrt(np.mean(mono**2)))
     peak = float(np.max(np.abs(mono)))
