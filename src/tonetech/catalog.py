@@ -69,7 +69,7 @@ class ParamSpec:
         real = self.denorm(value)
         if self.unit == "Hz":
             if real >= 1000:
-                return f"{real / 1000:.2f}kHz"
+                return f"{real / 1000:.2f}kHz".replace(".00k", "k")
             return f"{real:.0f}Hz"
         if self.unit == "" and (self.lo, self.hi) == (0, 1):
             return f"{value:.2f}"
