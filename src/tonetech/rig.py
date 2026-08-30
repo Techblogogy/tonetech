@@ -217,7 +217,7 @@ def _apply_one(rig: Rig, op: PatchOp) -> list[str]:
         return [f"moved {block.id} {block.label} to position {to}"]
 
     if name == "rename":
-        before, rig.name = rig.name, str(op.get("name", rig.name))
+        before, rig.name = rig.name, str(op.get("name", rig.name)).strip() or rig.name
         return [] if before == rig.name else [f"renamed rig {before!r} -> {rig.name!r}"]
 
     if name == "notes":
