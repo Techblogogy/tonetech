@@ -258,12 +258,13 @@ class RigState:
     live parameter update and a full chain rebuild.
     """
 
-    def __init__(self, rig: Rig | None = None) -> None:
+    def __init__(self, rig: Rig | None = None, max_undo: int = 200) -> None:
         self.rig = rig or Rig()
         self._undo: list[tuple[Rig, HistoryEntry]] = []
         self._redo: list[tuple[Rig, HistoryEntry]] = []
         self.history: list[HistoryEntry] = []
         self._listeners: list[Callable[[str, Any], None]] = []
+        self._max_undo = max_undo
 
     # -- listeners ---------------------------------------------------------
     def subscribe(self, fn: Callable[[str, Any], None]) -> None:
@@ -282,6 +283,7 @@ class RigState:
             return lines
         entry = HistoryEntry(source=source, lines=lines)
         self._undo.append((snapshot, entry))
+        del self._undo[: -self._max_undo]
         self._redo.clear()
         self.history.append(entry)
         if len(ops) == 1 and ops[0].get("op") == "set":
