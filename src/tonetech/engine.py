@@ -258,7 +258,7 @@ class AudioEngine(BaseEngine):
         mono = processed.mean(axis=0)
         self._ring.append(mono)
         self._ring_samples += len(mono)
-        while self._ring_samples > self._capture_len:
+        while self._ring_samples > self._capture_len and len(self._ring) > 1:
             self._ring_samples -= len(self._ring.popleft())
 
     def capture(self, seconds: float = 3.0) -> np.ndarray:
