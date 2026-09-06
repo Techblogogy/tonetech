@@ -21,4 +21,6 @@ jobs:
           uv venv --python ${{ matrix.python }}
           uv pip install -e ".[dev]"
       - name: Test
+        env:
+          TONETECH_HOME: ${{ runner.temp }}/tonetech
         run: uv run --no-sync pytest -q
