@@ -259,7 +259,7 @@ class PickerScreen(ModalScreen[str | None]):
 
     DEFAULT_CSS = """
     PickerScreen { align: center middle; }
-    PickerScreen > Vertical { width: 64; height: auto; max-height: 80%; border: thick $accent; background: $surface; }
+    PickerScreen > Vertical { width: 90; height: auto; max-height: 80%; border: thick $accent; background: $surface; }
     PickerScreen Label { padding: 0 1; text-style: bold; }
     PickerScreen OptionList { height: auto; max-height: 20; }
     """
@@ -469,7 +469,7 @@ class ToneTechApp(App[None]):
         for category in CATEGORY_ORDER:
             for kind, bt in CATALOG.items():
                 if bt.category == category:
-                    options.append((kind, f"{bt.label:<16} {bt.description[:44]}"))
+                    options.append((kind, f"{bt.label:<16} {bt.description.split('. ')[0][:64]}"))
 
         def picked(kind: str | None) -> None:
             if kind:
@@ -490,7 +490,7 @@ class ToneTechApp(App[None]):
         self.push_screen(NameScreen("Save rig as", self.state.rig.name), named)
 
     def action_load(self) -> None:
-        options = [(n, f"{n:<24} saved") for n in list_rigs()] + [(n, f"{n:<24} preset") for n in PRESETS]
+        options = [(n, f"{n:<28} saved") for n in list_rigs()] + [(n, f"{n:<28} preset") for n in PRESETS]
 
         def picked(name: str | None) -> None:
             if name:
